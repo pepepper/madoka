@@ -3,13 +3,18 @@
 #include <string>
 #include <ifstream>
 #include <mastodon-cpp/mastodon-cpp.hpp>
+#include <mastodon-cpp/easy/all.hpp>
 
 int main(int argc, char *argv[]){
+        if(argc<2){
+                std::cout<<"too few argument";
+                return 1;
+        }
         std:ifstream file("token.txt");
         std:string domain,token;
         file>>domain;
         file>>token;
-        std::cout << "changing name..."<<std::endl;
+        file.close();
         Mastodon::API masto(domain, token);
-        masto.patch(Mastodon::API::v1::accounts_update_credentials,{{"display_name",{name}}});
+        masto.post(Mastodon::API::v1::statuses,{{"statuses",{args[1]}},{"visibility",{"unlisted"}}});
 }
