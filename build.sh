@@ -5,17 +5,15 @@ export LANG=C
 export LC_ALL=C.UTF-8
 export ALLOW_MISSING_DEPENDENCIES=true
 export SOONG_ALLOW_MISSING_DEPENDENCIES=true
+unset JAVAC
 export CCACHE_DIR=~/ccache
 export USE_CCACHE=1
 
 # 作っとく
-mkdir -p ../log/success ../log/fail ~/rom
-
-# YOUR_ACCESS_TOKEN には https://www.pushbullet.com/#settings/account から取得したトークンを使用
-PUSHBULLET_TOKEN=YOUR_ACCESS_TOKEN
+mkdir -p ../log/success ../log/fail
 
 # ツイート用のハッシュタグを必要に応じて変えてください
-TWEET_TAG="madokaBuild"
+TWEET_TAG="shirasakaBuild"
 
 # 実行時の引数が正しいかチェック
 if [ $# -lt 2 ]; then
@@ -24,7 +22,6 @@ if [ $# -lt 2 ]; then
 	echo "  -t: publish tweet/toot" 1>&2
         echo "  -s: repo sync " 1>&2
         echo "  -c: make clean" 1>&2
-        echo "  -x: upload to /private/rom/device" 1>&2
 	echo "ログは自動的に記録されます。" 1>&2
 	exit 1
 fi
@@ -33,12 +30,11 @@ builddir=$1
 device=$2
 shift 2
 
-while getopts :tscx argument; do
+while getopts :tsc argument; do
 case $argument in
 	t) tweet=true ;;
 	s) sync=true ;;
 	c) clean=true ;;
-        x) private_build=true ;;
 	*) echo "正しくない引数が指定されました。" 1>&2
 	   exit 1 ;;
 esac
@@ -76,7 +72,7 @@ if [ $builddir = lineage ]; then
 	zipname="lineage-$(get_build_var LINEAGE_VERSION)"
 	newzipname="lineage-$(get_build_var PRODUCT_VERSION_MAJOR).$(get_build_var PRODUCT_VERSION_MINOR)-${filetime}-${get_build_var LINEAGE_BUILDTYPE}-$(device)"
 
-elif [ $builddir = floko ]; then
+elif [ $builddir = op5floko ]; then
         vernum="$(get_build_var FLOKO_VERSION)"
         source="floko-v${vernum}"
         short="${source}"
@@ -94,8 +90,7 @@ fi
 # 開始時の投稿
 if [ "$tweet" = "true" ]; then
 	twstart=$(echo -e "${device} 向け ${source} のビルドを開始します。 \n\n$starttime #${TWEET_TAG}")
-	perl ~/oysttyer/oysttyer.pl -ssl -status="$twstart"
-	echo $twstart | toot --visibility unlisted
+	echo $twstart | tooter
 fi
 
 # ビルド
@@ -124,43 +119,17 @@ echo -e "\n"
 if [ "$tweet" = "true" ]; then
 	endtime=$(date '+%Y/%m/%d %H:%M:%S')
 	twfinish=$(echo -e "$statustw\n\n$endstr\n\n$endtime #${TWEET_TAG}")
-	perl ~/oysttyer/oysttyer.pl -ssl -status="$twfinish" -autosplit=cut
-	echo $twfinish | toot --visibility unlisted
+	echo $twfinish | tooter
 fi
-
-# Pushbullet APIを使ってプッシュ通知も投げる。文言は適当に
-pbtitle=$(echo -e "${statusdir}: Build ${short} for ${device}")
-pbbody=$(cat -v "log/$filename" | tail -n 3 | tr -d '\n' | cut -d "#" -f 5-5 | cut -c 2-)
-
-curl -u ${PUSHBULLET_TOKEN}: -X POST \
-  https://api.pushbullet.com/v2/pushes \
-  --header "Content-Type: application/json" \
-  --data-binary "{\"type\": \"note\", \"title\": \"${pbtitle}\", \"body\": \"${pbbody}\"}"
 
 # ログ移す
 mv -v log/$filename log/$statusdir/
 
 echo -e "\n"
 
-if [ "$private_build" = "true" ]; then
-        publishdir="private/rom"
-else
-        publishdir="public/rom"
-fi
-
 # ビルドが成功してたら
 if [ $ans -eq 1 ]; then
 	# リネームする
 	mv -v --backup=t $builddir/out/target/product/$device/${zipname}.zip ${newzipname}.zip
-
-	# Nextcloud に上げる。 https://github.com/cghdev/cloud-dl 使用
-	~/cloud-dl -k ${publishdir}/${device}/
-	~/cloud-dl -u ${newzipname}.zip ${publishdir}/${device}/
-
-  # ~/rom に上げる
-	mkdir -p ~/rom/$device
-	mv -v ${newzipname}.zip ~/rom/$device/${newzipname}.zip
-	mv -v $builddir/out/target/product/$device/${zipname}.zip.md5sum ~/rom/$device/${newzipname}.zip.md5sum
-
-	echo -e "\n"
+        adb push ${newzipname}.zip /sdcard
 fi
