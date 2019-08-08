@@ -3,7 +3,6 @@
 #include <string>
 #include <ifstream>
 #include <mastodon-cpp/mastodon-cpp.hpp>
-#include <mastodon-cpp/easy/all.hpp>
 
 int main(int argc, char *argv[]){
         if(argc<2){
@@ -18,3 +17,4 @@ int main(int argc, char *argv[]){
         Mastodon::API masto(domain, token);
         masto.post(Mastodon::API::v1::statuses,{{"statuses",{args[1]}},{"visibility",{"unlisted"}}});
 }
+
