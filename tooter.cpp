@@ -1,7 +1,7 @@
 //mastodon-cpp
 #include <iostream>
 #include <string>
-#include <ifstream>
+#include <fstream>
 #include <mastodon-cpp/mastodon-cpp.hpp>
 
 int main(int argc, char *argv[]){
