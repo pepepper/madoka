@@ -47,6 +47,11 @@ prebuilts/misc/linux-x86/ccache/ccache -M 30G
 if [ "$sync" = "true" ]; then
 	repo sync -j8 -c -f --force-sync --no-clone-bundle
 	echo -e "\n"
+	if [ $? = 0 ]; then
+	else
+  		echo "repo sync failed!"
+		exit 1
+	fi
 fi
 
 # make clean
