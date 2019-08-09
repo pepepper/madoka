@@ -10,8 +10,8 @@ export CCACHE_DIR=~/ccache
 export USE_CCACHE=1
 
 # 作っとく
-mkdir -p ../log/success ../log/fail
-
+mkdir -p ../log/success ../log/fail ~/tmp
+sudo bash -c 'rm -rf ~/tmp/* && cp /tmp/* ~/tmp/ -r && mount --rbind ~/tmp/ /tmp/ && chmod 777 /tmp/ && chmod 777 ~/tmp/'
 # ツイート用のハッシュタグを必要に応じて変えてください
 TWEET_TAG="shirasakaBuild"
 
@@ -63,30 +63,11 @@ filename="${filetime}_${builddir}_${device}.log"
 # いつもの
 source build/envsetup.sh
 breakfast $device
-
-# ディレクトリ名からツイート用のROM情報の設定をする
-if [ $builddir = lineage ]; then
-	vernum="$(get_build_var PRODUCT_VERSION_MAJOR).$(get_build_var PRODUCT_VERSION_MINOR)"
-	source="LineageOS ${vernum}"
-	short="${source}"
-	zipname="lineage-$(get_build_var LINEAGE_VERSION)"
-	newzipname="lineage-$(get_build_var PRODUCT_VERSION_MAJOR).$(get_build_var PRODUCT_VERSION_MINOR)-${filetime}-${get_build_var LINEAGE_BUILDTYPE}-$(device)"
-
-elif [ $builddir = op5floko ]; then
-        vernum="$(get_build_var FLOKO_VERSION)"
-        source="floko-v${vernum}"
-        short="${source}"
-        zipname="$(get_build_var LINEAGE_VERSION)"
-        newzipname="Floko-v${vernum}-${device}-${filetime}-$(get_build_var FLOKO_BUILD_TYPE)"
-
-else
-# 一応対処するけど他ROMについては上記を参考にちゃんと書いてもらわないと後がめんどい
-	source=$builddir
-	short="${source}"
-	zipname="*"
-	newzipname="${zipname}"
-fi
-
+vernum="$(get_build_var FLOKO_VERSION)"
+source="floko-v${vernum}"
+short="${source}"
+zipname="$(get_build_var LINEAGE_VERSION)"
+newzipname="Floko-v${vernum}-${device}-${filetime}-$(get_build_var FLOKO_BUILD_TYPE)"
 # 開始時の投稿
 if [ "$tweet" = "true" ]; then
 	twstart=$(echo -e "${device} 向け ${source} のビルドを開始します。 \n\n$starttime #${TWEET_TAG}")
