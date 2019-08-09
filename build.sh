@@ -71,7 +71,7 @@ newzipname="Floko-v${vernum}-${device}-${filetime}-$(get_build_var FLOKO_BUILD_T
 # 開始時の投稿
 if [ "$tweet" = "true" ]; then
 	twstart=$(echo -e "${device} 向け ${source} のビルドを開始します。 \n\n$starttime #${TWEET_TAG}")
-	echo $twstart | tooter
+	echo $twstart | ./tooter
 fi
 
 # ビルド
@@ -100,7 +100,7 @@ echo -e "\n"
 if [ "$tweet" = "true" ]; then
 	endtime=$(date '+%Y/%m/%d %H:%M:%S')
 	twfinish=$(echo -e "$statustw\n\n$endstr\n\n$endtime #${TWEET_TAG}")
-	echo $twfinish | tooter
+	echo $twfinish | ./tooter
 fi
 
 # ログ移す
