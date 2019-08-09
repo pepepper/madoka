@@ -11,10 +11,10 @@ int main(int argc, char *argv[]){
 	}
 	std::ifstream file("token.txt");
 	std::string domain,token;
-	file>>domain;
-	file>>token;
+	std::getline(file,domain);
+	std::getline(file,token);
 	file.close();
 	Mastodon::API masto(domain, token);
-	masto.post(Mastodon::API::v1::statuses,{{"statuses",{argv[1]}},{"visibility",{"unlisted"}}});
+	masto.post(Mastodon::API::v1::statuses,{{"status",{argv[1]}},{"visibility",{"unlisted"}}});
 }
 
